@@ -47,6 +47,10 @@ class AnkiBridge:
 
     ### Core methods ###
     def addNote(self, note_dict: Dict):
+        deck = self.collection().decks.byName(note_dict["deckName"])
+        if deck is None:
+            raise Exception("deck was not found: {}".format(note_dict["deckName"]))
+
         note = self.create_note(note_dict)
         if note == None:
             return
@@ -82,7 +86,7 @@ class AnkiBridge:
 
         collection = self.collection()
         self.startEditing()
-        collection.addNote(note)
+        collection.add_note(note, deck["id"])
         collection.autosave()
         self.stopEditing()
 
@@ -161,12 +165,7 @@ class AnkiBridge:
         if model is None:
             raise Exception("model was not found: {}".format(note["modelName"]))
 
-        deck = collection.decks.byName(note["deckName"])
-        if deck is None:
-            raise Exception("deck was not found: {}".format(note["deckName"]))
-
         ankiNote = anki.notes.Note(collection, model)
-        ankiNote.model()["did"] = deck["id"]
         ankiNote.tags = note["tags"]
 
         for name, value in note["fields"].items():
